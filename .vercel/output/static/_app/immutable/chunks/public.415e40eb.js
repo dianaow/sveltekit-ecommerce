@@ -1,1 +1,0 @@
-const s="Medusa Store",t="This is my awesome Medusa store.",E="pk_test_51OsG3SD3L8Amtip3eRe1vFK7GG5g9SONm966l4yKibydXVDHkugtqKp1bMTFVJsuYpFNnYC9FKTEUu9ZMsJn2fOC00ZH9JEahr",I="";export{s as P,t as a,E as b,I as c};
