@@ -1,11 +1,10 @@
 <script lang="ts">
-   import { PUBLIC_SITE_NAME, PUBLIC_SITE_DESCRIPTION, PUBLIC_SITE_URL, PUBLIC_SITE_IMAGE } from '$env/static/public'
+   import { PUBLIC_SITE_NAME, PUBLIC_SITE_DESCRIPTION } from '$env/static/public'
    import { MetaTags } from 'svelte-meta-tags'
    import { page } from '$app/stores'
 
    export let title = ''
    export let description = PUBLIC_SITE_DESCRIPTION
-   export let images = []
    export let og = true
 
    let titleTemplate = `%s | ${PUBLIC_SITE_NAME}`

@@ -36,6 +36,7 @@
 	"type": "module",
 	"dependencies": {
 		"@medusajs/medusa-js": "^6.1.7",
+		"@sveltejs/adapter-vercel": "^5.2.0",
 		"cloudinary": "^2.0.1",
 		"stripe": "^14.19.0",
 		"svelte-stripe": "^1.1.4",
