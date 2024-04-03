@@ -7,9 +7,11 @@
    import Pagination from '$lib/components/Pagination.svelte'
 
    export let data: PageData
-   $: ({ id, email, first_name, last_name, phone, billing_address_id, shipping_addresses, orders } = data.user)
+   $: ({ id, email, first_name, last_name, phone, billing_address_id, shipping_addresses } = data.user)
+   //@ts-ignore
    $: (orders && orders.length > 0) ? orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) : null
    $: currentPage = data?.currentPage || 1
+   $: orders = data?.orders
    let opp = 10 // orders per page
    let processing = false
    let editInfo = false
@@ -266,7 +268,7 @@
                      {order.fulfillment_status === 'fulfilled' ? 'Shipped' : 'Pending'}
                   </div>
                   <div>
-                     <a href={`/account/order/${order.id}`} class="text-indigo-600 hover:text-indigo-500 mr-3">View / Track</a>
+                     <a href={`/account/order/${order.display_id}`} class="text-indigo-600 hover:text-indigo-500 mr-3">View / Track</a>
                   </div>
                </div>
             {/if}

@@ -61,8 +61,8 @@ async function medusalogout(locals: App.Locals, cookies: Cookies) {
        return false;
    locals.sid = '';
    locals.user = {};
-   cookies.delete('sid');
-   cookies.delete('cartid');
+   cookies.delete('sid', { path: '/' });
+   cookies.delete('cartid', { path: '/' });
    return true;
 }
 

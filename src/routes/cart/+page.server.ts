@@ -5,12 +5,10 @@ import medusa from '$lib/server/medusa'
 export const actions: Actions = {
 
    add: async ({ request, locals, cookies }) => {
-    console.log(request, locals)
       const data = await request.formData()
       const variantId = data.get('variantId') as string
       const cartId = locals.cartid || (await createCart(locals, cookies));
       const cart = await addToCart(cartId, variantId)
-      console.log('added to cart', data)
       if (cart) return { success: true, cart }
    },
 
@@ -94,7 +92,7 @@ async function createCart(locals: any, cookies: any) {
     return null;
   }
   try {
-    return await medusa.carts.lineItems.create(cartId, { variant_id: variantId, quantity }).then(({ cart }) => cart)
+    return await medusa.carts.lineItems.create(cartId, { variant_id: variantId, quantity }).then(({ cart }) => cart).catch((e) => console.log(e));
   } catch (error) {
     console.error('Error adding product to cart:', error);
   }

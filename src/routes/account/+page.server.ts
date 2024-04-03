@@ -4,11 +4,17 @@ import medusa from '$lib/server/medusa'
 
 export const load: PageServerLoad = async function ({ url, locals }) {
    if (!locals.user) throw redirect(307, '/auth')
-   const user = medusa.customers.retrieve({ "Cookie": `connect.sid=${locals.sid}`})
+   const user = await medusa.customers.retrieve({"Cookie": `connect.sid=${locals.sid}`})
       .then(({ customer }) => customer)
       .catch((e) => console.log(e));
+
+   const orders = await medusa.customers.listOrders({payment_status:["captured"]}, {"Cookie": `connect.sid=${locals.sid}`})
+      .then(({ orders }) => orders)
+      .catch((e) => console.log(e));
+
    return {
       user,
+      orders,
       currentPage: parseInt(url.searchParams?.get('page') as string) || 1
    }
 }

@@ -5,7 +5,7 @@
 
    export let data
    const order = data.order
-
+   
 </script>
 
 <SEO title="Order Details" description="Details about your order from {PUBLIC_SITE_NAME}"/>

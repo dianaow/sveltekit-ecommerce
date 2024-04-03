@@ -4,18 +4,16 @@ import medusa from '$lib/server/medusa'
 
 async function handleRequest(event: any) {
    // this middleware function is called by src/hooks.server.ts or src/hooks.server.js
-   event.locals.sid = event.cookies.get('sid');
-   if (event.locals.sid) {
-    event.locals.user = await getCustomer(event.locals, event.cookies);
-    event.locals.cartid = event.cookies.get('cartid');
-   } else {
-    event.locals.sid = '';
-   }
+   event.locals.sid = event.cookies.get('sid')
+   if (event.locals.sid) event.locals.user = await getCustomer(event.locals, event.cookies) 
+   else event.locals.sid = ''
 
-   let cart = await getCart(event.locals, event.cookies);
-   event.locals.cartid = cart?.id || '';
-   event.locals.cart = cart || null;
-   return event;
+   event.locals.cartid = event.cookies.get('cartid')
+   let cart: any = await getCart(event.locals, event.cookies)
+   event.locals.cartid = cart?.id || ''
+   event.locals.cart = cart || null
+
+   return event
 }
 
 async function getCustomer(locals: any, cookies: any) {
@@ -66,7 +64,7 @@ async function getCart(locals: any, cookies: any) {
    }
    if (locals.cartid && !cart) {
        locals.cartid = '';
-       cookies.delete('cartid');
+       cookies.delete('cartid', { path: '/' });
    }
    return cart;
 }

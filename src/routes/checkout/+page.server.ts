@@ -17,11 +17,21 @@ export const load: PageServerLoad = async function ({ locals }) {
 
 	// const paymentIntent = await stripe.paymentIntents.create(options)
 
-   if (!locals.cartid) {
-      return false;
+   if (!locals.cartid || locals.cartid === '') {
+      return {props: {}}
    }
    
-   let cart = await medusa.carts.createPaymentSessions(locals.cartid)
+   let cart
+   if(locals.user) {
+      cart = await medusa.carts.update(locals.cartid, {
+         customer_id: locals.user.id,
+         email: locals.user.email
+       })
+       .then(({ cart }) => cart)
+       .catch((e) => console.log(e))     
+   }
+
+   cart = await medusa.carts.createPaymentSessions(locals.cartid)
       .then(({ cart }) => cart)
       .catch((e) => console.log(e))
    if (!cart.total) { throw error(400, { message: 'Could not create payment sessions' })}
@@ -72,7 +82,7 @@ export const actions: Actions = {
       })
       locals.cartid = ''
       if (order) {
-         console.log("PAID WITH ORDER THROUGH")
+         console.log("PAID WITH ORDER THROUGH", order)
          return { success: true, order }
       } else {
          console.log('PAID BUT AN ERROR MESSAGE SHOWS')

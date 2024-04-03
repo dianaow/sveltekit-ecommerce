@@ -6,14 +6,17 @@
    import { PUBLIC_STRIPE_KEY } from '$env/static/public'
    import { enhance } from '$app/forms'
    import { formatPrice } from '$lib/utils'
-   import { PaymentElement, Address, Elements, type StripeElements, type StripeAddressElementOptions } from 'svelte-stripe'
+   import { PaymentElement, Address, Elements } from 'svelte-stripe'
    import { loadStripe } from '@stripe/stripe-js'
+   import type { StripeElements, StripeAddressElementOptions } from '@stripe/stripe-js'
 
    export let data: PageData
    let stripe: any = null
    let user = data.user
    let cart = data.cart
-   let order = data.order
+   let order
+   $: console.log(order)
+
    let shippingOptions = data.shippingOptions || []
    //let clientSecret = data?.clientSecret
    $: items = cart?.items || []
@@ -27,12 +30,11 @@
    let loading = true
    let errorMessage = ''
    let elements: StripeElements
-   let contacts: StripeAddressElementOptions["contacts"][] = []
+   let contacts: StripeAddressElementOptions["defaultValues"][] = []
 
    if (user.shipping_addresses) {
       for (let address of user.shipping_addresses) {
          contacts.push({
-            //name: address.first_name + ' ' + address.last_name,
             firstName: address.first_name,
             lastName: address.last_name,
             address: {
@@ -66,29 +68,36 @@
       }
    }
 
-   const saveAddress = async (value: StripeAddressElementOptions['contact']) => {
+   const saveAddress = async (value: any) => {
       let address = {
-         first_name: value.firstName,
-         last_name: value.lastName,
-         address_1: value.address.line1,
-         address_2: value.address.line2,
-         city: value.address.city,
-         province: value.address.state,
-         postal_code: value.address.postal_code,
-         country_code: value.address.country.toLowerCase(),
+         first_name: value?.firstName,
+         last_name: value?.lastName,
+         address_1: value?.address?.line1,
+         address_2: value?.address?.line2,
+         city: value?.address?.city,
+         province: value?.address?.state,
+         postal_code: value?.address?.postal_code,
+         country_code: value?.address?.country.toLowerCase(),
       }
 
       let newAddress = true
-      // if no first_name, this must be coming from stripe, so address is not new.  
-      // sometimes stripe sends full name despite setting cause who knows why
       if (!address.first_name) {
          newAddress = false
-         let { firstName, lastName } = splitName(value.name)
-         address.first_name = firstName
-         address.last_name = lastName
+         address.first_name = value?.firstName
+         address.last_name = value?.lastName
       } else {
          for (let existing of user.shipping_addresses) {
-            if (JSON.stringify(address) === JSON.stringify(existing)) {
+            const existing_address = {
+               first_name: existing.first_name,
+               last_name: existing.last_name,
+               address_1: existing.address_1, 
+               address_2: existing.address_2, 
+               city: existing.city, 
+               province: existing.province, 
+               postal_code: existing.postal_code, 
+               country_code: existing.country_code
+            }
+            if (JSON.stringify(address) === JSON.stringify(existing_address)) {
                newAddress = false
             }
          }
@@ -146,7 +155,7 @@
             <!-- <a href="/"><img src="/logo.png" alt="{PUBLIC_SITE_NAME}" class="h-14 w-auto"></a> -->
          </div>
          <p>Thank you for your order!</p>
-         <p>Your order number is <a class="font-bold text-lime-600" href={`/account/order/${order.id}`}>{order.display_id}</a></p>
+         <!-- <p>Your order number is <a class="font-bold text-lime-600" href={`/account/order/${order.id}`}>{order.display_id}</a></p> -->
          <p class="mt-6"><a href={"/"}>&larr; Continue Shopping</a></p>
       </div>
    </section>
@@ -253,12 +262,14 @@
                   processing = true
                   
                   const addressContainer = elements.getElement('address');
-                  const {complete, value} = await addressContainer.getValue()
-                  if (complete) {
-                     cart = await saveAddress(value)
-                     if (!cart) {
-                        errorMessage = 'Something went wrong while saving your address.'
-                        cancel()
+                  if(addressContainer) {
+                     const {complete, value} = await addressContainer.getValue()
+                     if (complete) {
+                        cart = await saveAddress(value)
+                        if (!cart) {
+                           errorMessage = 'Something went wrong while saving your address.'
+                           cancel()
+                        }
                      }
                   }
          
@@ -266,15 +277,20 @@
                      elements,
                      redirect: 'if_required',
                   })
-    
-                  if (stripeResponse.error) { 
-                     errorMessage = 'Something went wrong while confirming Stripe payment'
+                  if (stripeResponse.error) {
+                     errorMessage = stripeResponse.error.message
                      processing = false
                      cancel()
                   } else {
-                     processing = false
-                     success = true
-                  }             
+                     return async ({ result }) => {
+                        console.log(result)
+                        if (result.status === 200) {
+                           processing = false
+                           success = true
+                           order = result.data?.order
+                        } 
+                     }
+                  }           
                }}>
                   <Address mode='billing' defaultValues={contacts[0]} display={{name: 'split'}}/>
 
